@@ -5,10 +5,11 @@ $db = "leaky_guest_book1";
 $username = "root";
 $password = "";
 $conn;
+
 try {
     $conn = new PDO("mysql:host=$host;dbname=$db", $username, $password);
 } catch (Exception $e) {
-    die("Failed to open database connection, did you start it and configure the credentials properly?");
+    die("Failed to open the database connection. Did you start it and configure the credentials properly?");
 }
 
 if (empty($_SESSION['token'])) {
@@ -33,21 +34,27 @@ function userIsAdmin($conn)
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'];
-    $text = $_POST['text'];
-    $admin = userIsAdmin($conn) ? 1 : 0;
-    $color = ($admin) ? $_POST['color'] : 'red';
+    // Verify the token
+    if (isset($_POST['token']) && $_POST['token'] === $_SESSION['token']) {
+        $email = $_POST['email'];
+        $text = $_POST['text'];
+        $admin = userIsAdmin($conn) ? 1 : 0;
+        $color = ($admin) ? $_POST['color'] : 'red';
 
-    $text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+        $text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 
-    $conn->query(
-        "INSERT INTO `entries`(`email`, `color`, `admin`, `text`) 
-         VALUES ('$email', '$color', '$admin', '$text');"
-    );
+        $conn->query(
+            "INSERT INTO `entries`(`email`, `color`, `admin`, `text`) 
+            VALUES ('$email', '$color', '$admin', '$text');"
+        );
+    } else {
+        echo " Token validation failed. The form submission is not allowed.";
+    }
 }
 ?>
-<html>
 
+<!DOCTYPE html>
+<html>
 <head>
     <title>Leaky-Guestbook</title>
     <style>
@@ -74,15 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </style>
 </head>
-<pre>
-    <script>
-        alert('Hallo ik ben XSS');
-        window.onload = function() {
-            document.body.style.backgroundColor = "red";
-        }
-    </script>
-</pre>
-
 <body>
     <div class="body-container">
         <h1 class="heading">Gastenboek 'De lekkage'</h1>
@@ -118,8 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <hr />
         <div class="disclosure-notice">
             <p>
-                Hierbij krijgt iedereen expliciete toestemming om dit Gastenboek zelf te gebruiken voor welke doeleinden dan
-                ook.
+                Hierbij krijgt iedereen expliciete toestemming om dit Gastenboek zelf te gebruiken voor welke doeleinden dan ook.
             </p>
             <p>
                 Onthoud dat je voor andere websites altijd je aan de principes van
@@ -130,5 +127,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </body>
-
 </html>
