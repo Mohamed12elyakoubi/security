@@ -38,6 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $admin = userIsAdmin($conn) ? 1 : 0;
     $color = ($admin) ? $_POST['color'] : 'red';
 
+    // Voorkom scriptinjectie door tekst te ontsnappen
+    $text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+
     $conn->query(
         "INSERT INTO `entries`(`email`, `color`, `admin`, `text`) 
          VALUES ('$email', '$color', '$admin', '$text');"
@@ -72,6 +75,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </style>
 </head>
+<pre>
+    <script>
+        alert('Hallo ik ben XSS');
+        window.onload = function() {
+            document.body.style.backgroundColor = "red";
+        }
+    </script>
+</pre>
 
 <body>
     <div class="body-container">
@@ -91,11 +102,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php
         $result = $conn->query("SELECT `email`, `text`, `color`, `admin` FROM `entries`");
         foreach ($result as $row) {
+            $entryText = htmlspecialchars($row['text'], ENT_QUOTES, 'UTF-8');
             print "<div style=\"color: " . $row['color'] . "\">Email: " . $row['email'];
             if ($row['admin']) {
                 print '&#9812;';
             }
-            print ": " . $row['text'] . "</div><br/>";
+            print ": " . $entryText . "</div><br/>";
         }
         $email = "username@domain.com";
         if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
