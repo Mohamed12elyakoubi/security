@@ -38,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $admin = userIsAdmin($conn) ? 1 : 0;
     $color = ($admin) ? $_POST['color'] : 'red';
 
-    // Voorkom scriptinjectie door tekst te ontsnappen
     $text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 
     $conn->query(
