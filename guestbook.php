@@ -36,12 +36,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
     $text = $_POST['text'];
     $admin = userIsAdmin($conn) ? 1 : 0;
-    $color = ($admin) ? $_POST['color'] : 'red';
 
-    $conn->query(
-        "INSERT INTO `entries`(`email`, `color`, `admin`, `text`) 
-         VALUES ('$email', '$color', '$admin', '$text');"
-    );
+    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $color = ($admin && $_POST['color'] === 'blue') ? 'blue' : 'red';
+
+        $conn->query(
+            "INSERT INTO `entries`(`email`, `color`, `admin`, `text`) 
+             VALUES ('$email', '$color', '$admin', '$text');"
+        );
+    } else {
+        echo "Ongeldig e-mailadres. Voer een geldig e-mailadres in.";
+    }
 }
 ?>
 <html>
